@@ -33,7 +33,7 @@ class TiptapEditor extends Field
 
     protected array $extensions = [];
 
-    protected string | Closure | null $maxContentWidth = null;
+    protected string|Closure|null $maxContentWidth = null;
 
     protected string $profile = 'default';
 
@@ -41,9 +41,9 @@ class TiptapEditor extends Field
 
     protected ?array $tools = [];
 
-    protected array | Closure $blocks = [];
+    protected array|Closure $blocks = [];
 
-    protected array | Closure $mergeTags = [];
+    protected array|Closure $mergeTags = [];
 
     protected string $view = 'filament-tiptap-editor::tiptap-editor';
 
@@ -73,7 +73,7 @@ class TiptapEditor extends Field
         $this->tools = config('filament-tiptap-editor.profiles.default');
         $this->extensions = config('filament-tiptap-editor.extensions') ?? [];
 
-        $this->afterStateHydrated(function (TiptapEditor $component, string | array | null $state): void {
+        $this->afterStateHydrated(function (TiptapEditor $component, string|array|null $state): void {
 
             if (! $state) {
                 return;
@@ -92,7 +92,7 @@ class TiptapEditor extends Field
             $livewire->validateOnly($component->getStatePath());
         });
 
-        $this->dehydrateStateUsing(function (TiptapEditor $component, string | array | null $state): string | array | null {
+        $this->dehydrateStateUsing(function (TiptapEditor $component, string|array|null $state): string|array|null {
 
             if (! $state) {
                 return null;
@@ -195,12 +195,11 @@ class TiptapEditor extends Field
     public function renderBlockPreviews(array $document, TiptapEditor $component): array
     {
         $content = $document['content'];
-
         foreach ($content as $k => $block) {
             if ($block['type'] === 'tiptapBlock') {
                 $instance = $this->getBlock($block['attrs']['type']);
                 $orderedAttrs = [
-                    'preview' => $instance->getPreview($block['attrs']['data'], $component),
+                    'preview' => data_get(\App\Models\PromptBlock::firstWhere('slug', $instance->slug()), 'name', $instance->getPreview($block['attrs']['data'], $component)),
                     'statePath' => $component->getStatePath(),
                     'type' => $block['attrs']['type'],
                     'label' => $instance->getLabel(),
@@ -343,7 +342,7 @@ class TiptapEditor extends Field
             });
     }
 
-    public function maxContentWidth(string | Closure $width): static
+    public function maxContentWidth(string|Closure $width): static
     {
         $this->maxContentWidth = $width;
 
@@ -358,7 +357,7 @@ class TiptapEditor extends Field
         return $this;
     }
 
-    public function blocks(array | Closure $blocks): static
+    public function blocks(array|Closure $blocks): static
     {
         $this->blocks = $blocks;
 
@@ -393,12 +392,15 @@ class TiptapEditor extends Field
 
     public function getBlock(string $identifier): TiptapBlock
     {
+
         return $this->getBlocks()[$identifier];
     }
 
-    public function getBlocks(): array
+    public function getBlocks(): Closure|array
     {
         $blocks = $this->evaluate($this->blocks);
+
+        return $blocks;
 
         return collect($blocks)->mapWithKeys(function ($block, $key) {
             $b = app($block);
@@ -450,7 +452,7 @@ class TiptapEditor extends Field
         return $this->shouldCollapseBlocksPanel;
     }
 
-    public function mergeTags(array | Closure $mergeTags): static
+    public function mergeTags(array|Closure $mergeTags): static
     {
         $this->mergeTags = $mergeTags;
 
