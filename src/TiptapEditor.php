@@ -199,10 +199,10 @@ class TiptapEditor extends Field
             if ($block['type'] === 'tiptapBlock') {
                 $instance = $this->getBlock($block['attrs']['type']);
                 $orderedAttrs = [
-                    'preview' => data_get(\App\Models\PromptBlock::firstWhere('slug', $instance->slug()), 'name', $instance->getPreview($block['attrs']['data'], $component)),
+                    'preview' => $instance ? $instance->getPreview($block['attrs']['data'], $component) : $block['attrs']['type'],
                     'statePath' => $component->getStatePath(),
                     'type' => $block['attrs']['type'],
-                    'label' => $instance->getLabel(),
+                    'label' => $instance ? $instance->getLabel() : $block['attrs']['type'],
                     'data' => Js::from($block['attrs']['data'])->toHtml(),
                 ];
                 $content[$k]['attrs'] = $orderedAttrs;
@@ -390,10 +390,9 @@ class TiptapEditor extends Field
         return $this->shouldDisableStylesheet ?? config('filament-tiptap-editor.disable_stylesheet');
     }
 
-    public function getBlock(string $identifier): TiptapBlock
+    public function getBlock(string $identifier): ?TiptapBlock
     {
-
-        return $this->getBlocks()[$identifier];
+        return data_get($this->getBlocks(), $identifier);
     }
 
     public function getBlocks(): Closure|array
